@@ -121,29 +121,21 @@
                 </div>
             </div>
 
-            <!-- LEARNING SECTION (Hidden initially) -->
+            <!-- LEARNING SECTION -->
             <div id="learningSection" class="learning-section" style="display: none;">
                 <div class="learning-header">
                     <button class="back-btn" onclick="backToDashboard()">← Back</button>
                     <h2>Spellathon Practice</h2>
                 </div>
-
-                <!-- GRADE SELECTION -->
                 <div id="gradeSelection" class="selection-step">
                     <h3>Select Grade</h3>
                     <p>Your Grade: <strong id="selectedGrade">Grade 5</strong></p>
                     <p class="info-text">Words will be filtered for your grade level</p>
                 </div>
-
-                <!-- SUBJECT SELECTION -->
                 <div id="subjectSelection" class="selection-step" style="display: none;">
                     <h3>Select Subject</h3>
-                    <div id="subjectList" class="button-grid">
-                        <!-- Populated by JS -->
-                    </div>
+                    <div id="subjectList" class="button-grid"></div>
                 </div>
-
-                <!-- MODE SELECTION -->
                 <div id="modeSelection" class="selection-step" style="display: none;">
                     <h3>Choose Mode</h3>
                     <div class="button-grid">
@@ -159,37 +151,27 @@
                         </button>
                     </div>
                 </div>
-
-                <!-- SETS SELECTION -->
                 <div id="setSelection" class="selection-step" style="display: none;">
                     <h3>Select Word Set</h3>
-                    <div id="setList" class="button-grid">
-                        <!-- Populated by JS -->
-                    </div>
+                    <div id="setList" class="button-grid"></div>
                 </div>
-
-                <!-- LEARNING VIEW -->
                 <div id="learningView" class="learning-view" style="display: none;">
                     <div class="learning-top">
                         <button class="back-btn" onclick="backToSetSelection()">← Back</button>
                         <span class="progress-indicator" id="progressIndicator">1/10</span>
                     </div>
-
                     <div class="word-display">
                         <div class="word-section">
                             <h2 id="currentWord">Word</h2>
                             <p id="wordMeaning" class="word-meaning">Word meaning will appear here</p>
                             <p id="wordIPA" class="word-ipa">IPA: ə-prəks-ə-ˈmāt-lē</p>
                         </div>
-
                         <div class="button-group">
                             <button class="btn" onclick="playAudio('word')">▶ Play Word</button>
                             <button class="btn" onclick="playAudio('syllables')">▶ Play Syllables</button>
                             <button class="btn" onclick="playAudio('letters')">▶ Play Letters</button>
                         </div>
                     </div>
-
-                    <!-- PRACTICE INPUT -->
                     <div id="practiceArea" class="practice-area" style="display: none;">
                         <input type="text" id="spellingInput" placeholder="Type the word..." readonly>
                         <div id="keyboard" class="keyboard"></div>
@@ -198,24 +180,17 @@
                             <button class="btn btn-secondary" onclick="nextWord()">Skip Word</button>
                         </div>
                     </div>
-
-                    <!-- TEST INPUT -->
                     <div id="testArea" class="test-area" style="display: none;">
-                        <div class="test-timer">
-                            <span id="testTimer">30</span>s
-                        </div>
+                        <div class="test-timer"><span id="testTimer">30</span>s</div>
                         <input type="text" id="testInput" placeholder="Type the word..." readonly>
                         <div id="testKeyboard" class="keyboard"></div>
                         <button class="btn" onclick="submitTestAnswer()">Submit</button>
                     </div>
-
-                    <!-- FEEDBACK -->
                     <div id="feedback" class="feedback" style="display: none;"></div>
                 </div>
             </div>
         </div>
 
-        <!-- PROGRESS INFO -->
         <div class="dashboard-footer">
             <p>Keep learning! You're doing great! 🌟</p>
         </div>
@@ -227,48 +202,27 @@
             <h1>Admin Dashboard</h1>
             <button class="logout-btn" onclick="handleLogout()">Logout</button>
         </div>
-
         <div class="admin-nav">
             <button class="admin-nav-btn active" onclick="switchAdminTab('analytics')">📊 Analytics</button>
             <button class="admin-nav-btn" onclick="switchAdminTab('students')">👥 Students</button>
             <button class="admin-nav-btn" onclick="switchAdminTab('logs')">📝 Logs</button>
         </div>
-
-        <!-- ANALYTICS TAB -->
         <div id="analytics-tab" class="admin-tab active">
             <h2>Overview</h2>
             <div class="stats-grid">
-                <div class="stat-card">
-                    <span class="stat-label">Total Students</span>
-                    <span class="stat-value" id="totalStudents">0</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-label">Today's Logins</span>
-                    <span class="stat-value" id="todayLogins">0</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-label">Tests Taken</span>
-                    <span class="stat-value" id="totalTests">0</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-label">Avg Gems/Student</span>
-                    <span class="stat-value" id="avgGems">0</span>
-                </div>
+                <div class="stat-card"><span class="stat-label">Total Students</span><span class="stat-value" id="totalStudents">0</span></div>
+                <div class="stat-card"><span class="stat-label">Today's Logins</span><span class="stat-value" id="todayLogins">0</span></div>
+                <div class="stat-card"><span class="stat-label">Tests Taken</span><span class="stat-value" id="totalTests">0</span></div>
+                <div class="stat-card"><span class="stat-label">Avg Gems/Student</span><span class="stat-value" id="avgGems">0</span></div>
             </div>
         </div>
-
-        <!-- STUDENTS TAB -->
         <div id="students-tab" class="admin-tab">
             <h2>Students</h2>
             <div class="search-box">
                 <input type="text" id="studentSearch" placeholder="Search by name or email..." onkeyup="filterStudents()">
             </div>
-            <div id="studentsList" class="students-list">
-                <!-- Populated by JS -->
-            </div>
+            <div id="studentsList" class="students-list"></div>
         </div>
-
-        <!-- LOGS TAB -->
         <div id="logs-tab" class="admin-tab">
             <h2>Student Logs</h2>
             <div class="logs-controls">
@@ -276,9 +230,7 @@
                     <option value="">Select Student</option>
                 </select>
             </div>
-            <div id="logsList" class="logs-list">
-                <!-- Populated by JS -->
-            </div>
+            <div id="logsList" class="logs-list"></div>
         </div>
     </div>
 
@@ -288,19 +240,42 @@
         <p>Loading...</p>
     </div>
 
+    <!-- ============================================ -->
     <!-- FIREBASE SDK - COMPAT VERSION (Works with script tags) -->
+    <!-- ============================================ -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
+    <!-- ============================================ -->
     <!-- APPLICATION SCRIPTS - IN CORRECT ORDER -->
-    <script src="js/firebase-config.js"></script>
+    <!-- ============================================ -->
+    
+    <!-- 1. GLOBALS - Must be first! -->
+    <script src="js/globals.js"></script>
+
+    <!-- 2. UTILITIES -->
     <script src="js/ui.js"></script>
+
+    <!-- 3. FIREBASE CONFIG - Initializes Firebase -->
+    <script src="js/firebase-config.js"></script>
+
+    <!-- 4. DATA LOADING - Uses Firebase & Globals -->
     <script src="js/worddata-google-sheets.js"></script>
-    <script src="js/database.js"></script>
-    <script src="js/auth.js"></script>
+
+    <!-- 5. DATABASE OPS - Uses globals & Firebase -->
+    <script src="js/database-fixed.js"></script>
+
+    <!-- 6. AUTHENTICATION - Uses database functions -->
+    <script src="js/auth-fixed.js"></script>
+
+    <!-- 7. LEARNING MODULE - Uses all above -->
     <script src="js/learning.js"></script>
+
+    <!-- 8. ADMIN FUNCTIONS - Uses all above -->
     <script src="js/admin.js"></script>
+
+    <!-- 9. MAIN - Initialization (runs last) -->
     <script src="js/main.js"></script>
 </body>
 </html>
