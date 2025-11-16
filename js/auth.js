@@ -1,4 +1,7 @@
-// Authentication Functions
+/ ==========================================
+// AUTHENTICATION FUNCTIONS
+// ==========================================
+
 async function handleStudentSignup() {
     const name = document.getElementById('signupName').value.trim();
     const grade = parseInt(document.getElementById('signupGrade').value);
@@ -19,11 +22,13 @@ async function handleStudentSignup() {
 
     try {
         // Create user in Firebase Auth
-        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
         const user = userCredential.user;
 
+        console.log('✓ User created:', user.uid);
+
         // Save profile to database
-        await db.ref('users/' + user.uid).set({
+        await firebase.database().ref('users/' + user.uid).set({
             profile: {
                 name: name,
                 grade: grade,
@@ -36,20 +41,23 @@ async function handleStudentSignup() {
             completedSets: {}
         });
 
+        console.log('✓ Profile created in database');
+
         showLoading(false);
         showError('Registration successful! Please log in.', 'success');
         
-        // Clear form and switch to login
+        // Clear form
         document.getElementById('signupName').value = '';
         document.getElementById('signupGrade').value = '';
         document.getElementById('signupEmail').value = '';
         document.getElementById('signupPassword').value = '';
         
+        // Switch to login
         switchTab('student-login');
 
     } catch (error) {
         showLoading(false);
-        console.error('Signup error:', error);
+        console.error('✗ Signup error:', error);
         
         if (error.code === 'auth/email-already-in-use') {
             showError('Email already in use');
@@ -73,16 +81,31 @@ async function handleStudentLogin() {
     showLoading(true);
 
     try {
-        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
         const user = userCredential.user;
 
-        console.log('Student login successful:', user.uid);
+        console.log('✓ Student login successful:', user.uid);
 
-        // Log login
+        // Log the login
         await logUserLogin(user.uid, 'student');
 
-        // Load profile
-        await loadUserProfile(user.uid);
+        // Load user profile
+        const profileLoaded = await loadUserProfile(user.uid);
+        
+        if (!profileLoaded) {
+            showLoading(false);
+            showError('Could not load user profile');
+            await firebase.auth().signOut();
+            return;
+        }
+
+        // Load word data from Google Sheets
+        console.log('Loading word data...');
+        const dataLoadSuccess = await loadWordData();
+        
+        if (!dataLoadSuccess) {
+            console.warn('⚠ Warning: Word data may not have loaded');
+        }
 
         showLoading(false);
 
@@ -90,12 +113,12 @@ async function handleStudentLogin() {
         document.getElementById('authContainer').classList.remove('active');
         document.getElementById('studentDashboard').classList.add('active');
 
-        // Initialize learning app
+        // Initialize app
         await initializeApp();
 
     } catch (error) {
         showLoading(false);
-        console.error('Login error:', error);
+        console.error('✗ Login error:', error);
         
         if (error.code === 'auth/user-not-found') {
             showError('User not found');
@@ -119,20 +142,22 @@ async function handleAdminLogin() {
     showLoading(true);
 
     try {
-        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
         const user = userCredential.user;
 
+        console.log('Checking admin status for:', email);
+
         // Check if admin
-        const adminSnapshot = await db.ref('admins/' + email).once('value');
+        const adminSnapshot = await firebase.database().ref('admins/' + email).once('value');
         
         if (!adminSnapshot.exists() || adminSnapshot.val() !== true) {
             showLoading(false);
-            await auth.signOut();
+            await firebase.auth().signOut();
             showError('Access denied. This account is not an admin.');
             return;
         }
 
-        console.log('Admin login successful:', email);
+        console.log('✓ Admin login successful:', email);
 
         // Log admin login
         await logUserLogin(user.uid, 'admin');
@@ -148,7 +173,7 @@ async function handleAdminLogin() {
 
     } catch (error) {
         showLoading(false);
-        console.error('Admin login error:', error);
+        console.error('✗ Admin login error:', error);
         
         if (error.code === 'auth/user-not-found') {
             showError('Admin not found');
@@ -162,53 +187,26 @@ async function handleAdminLogin() {
 
 async function handleLogout() {
     try {
-        await auth.signOut();
+        await firebase.auth().signOut();
         
         // Reset UI
         document.getElementById('authContainer').classList.add('active');
         document.getElementById('studentDashboard').classList.remove('active');
         document.getElementById('adminDashboard').classList.remove('active');
         
-        // Clear form
+        // Clear forms
         document.getElementById('loginEmail').value = '';
         document.getElementById('loginPassword').value = '';
         document.getElementById('adminEmail').value = '';
         document.getElementById('adminPassword').value = '';
         
-        console.log('Logged out successfully');
+        console.log('✓ Logged out successfully');
     } catch (error) {
-        console.error('Logout error:', error);
+        console.error('✗ Logout error:', error);
     }
 }
 
-// Helper Functions
-function showError(message, type = 'error') {
-    const errorDiv = document.getElementById('authError');
-    errorDiv.textContent = message;
-    errorDiv.className = 'error-message show';
-    
-    if (type === 'success') {
-        errorDiv.style.background = '#e8f5e9';
-        errorDiv.style.color = '#4caf50';
-    } else {
-        errorDiv.style.background = '#ffebee';
-        errorDiv.style.color = '#f44336';
-    }
-
-    setTimeout(() => {
-        errorDiv.classList.remove('show');
-    }, 4000);
-}
-
-function showLoading(show) {
-    const spinner = document.getElementById('loadingSpinner');
-    if (show) {
-        spinner.style.display = 'flex';
-    } else {
-        spinner.style.display = 'none';
-    }
-}
-
+// TAB SWITCHING
 function switchTab(tabName) {
     // Hide all tabs
     document.querySelectorAll('.tab-content').forEach(tab => {
@@ -230,12 +228,17 @@ function switchTab(tabName) {
     }
 
     // Clear error message
-    document.getElementById('authError').classList.remove('show');
+    const errorDiv = document.getElementById('authError');
+    if (errorDiv) {
+        errorDiv.classList.remove('show');
+    }
 }
 
 // Setup tab listeners
-document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        switchTab(e.target.dataset.tab);
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            switchTab(e.target.dataset.tab);
+        });
     });
 });
