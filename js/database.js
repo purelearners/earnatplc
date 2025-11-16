@@ -1,12 +1,11 @@
-// Global Variables
-let currentUser = null;
-let allWordsData = [];
-let subjectsByGrade = {};
+// ==========================================
+// DATABASE FUNCTIONS
+// ==========================================
+// Note: Global variables are in globals.js
 
-// Load user profile from database
 async function loadUserProfile(uid) {
     try {
-        const snapshot = await db.ref('users/' + uid + '/profile').once('value');
+        const snapshot = await firebase.database().ref('users/' + uid + '/profile').once('value');
 
         if (snapshot.exists()) {
             const profile = snapshot.val();
@@ -16,9 +15,9 @@ async function loadUserProfile(uid) {
             };
 
             // Update UI
-            document.getElementById('userName').textContent = profile.name;
-            document.getElementById('userGrade').textContent = profile.grade;
-            document.getElementById('gemsDisplay').textContent = profile.gems;
+            document.getElementById('userName').textContent = profile.name || 'Student';
+            document.getElementById('userGrade').textContent = profile.grade || '1';
+            document.getElementById('gemsDisplay').textContent = profile.gems || '0';
             document.getElementById('selectedGrade').textContent = 'Grade ' + profile.grade;
 
             // Check if can claim reward
@@ -26,22 +25,21 @@ async function loadUserProfile(uid) {
                 document.getElementById('claimRewardContainer').style.display = 'block';
             }
 
-            console.log('User profile loaded:', profile);
+            console.log('✓ User profile loaded:', profile);
             return true;
         } else {
-            console.error('No profile found');
+            console.error('✗ No profile found for user:', uid);
             showError('Error loading user profile');
             return false;
         }
 
     } catch (error) {
-        console.error('Error loading profile:', error);
+        console.error('✗ Error loading profile:', error);
         showError('Error loading profile: ' + error.message);
         return false;
     }
 }
 
-// Log user login
 async function logUserLogin(uid, userType = 'student') {
     try {
         const loginId = 'login_' + Date.now();
@@ -52,18 +50,19 @@ async function logUserLogin(uid, userType = 'student') {
             deviceInfo: navigator.userAgent.substring(0, 100)
         };
 
-        await db.ref('users/' + uid + '/loginHistory/' + loginId).set(loginData);
-        console.log('Login logged successfully');
+        await firebase.database().ref('users/' + uid + '/loginHistory/' + loginId).set(loginData);
+        console.log('✓ Login logged successfully');
+        return true;
     } catch (error) {
-        console.error('Error logging login:', error);
+        console.error('✗ Error logging login:', error);
+        return false;
     }
 }
 
-// Log test completion
 async function logTestCompletion(testData) {
     if (!currentUser) {
-        console.error('No user logged in');
-        return;
+        console.error('✗ No user logged in');
+        return false;
     }
 
     try {
@@ -85,11 +84,11 @@ async function logTestCompletion(testData) {
         };
 
         // Save test log
-        await db.ref('users/' + currentUser.uid + '/testLogs/' + testId).set(logEntry);
+        await firebase.database().ref('users/' + currentUser.uid + '/testLogs/' + testId).set(logEntry);
 
         // Update gems
         const newGems = currentUser.gems + (testData.gemsEarned || 0);
-        await db.ref('users/' + currentUser.uid + '/profile/gems').set(newGems);
+        await firebase.database().ref('users/' + currentUser.uid + '/profile/gems').set(newGems);
 
         // Update local state
         currentUser.gems = newGems;
@@ -100,43 +99,47 @@ async function logTestCompletion(testData) {
             document.getElementById('claimRewardContainer').style.display = 'block';
         }
 
-        console.log('Test logged and gems updated:', logEntry);
+        console.log('✓ Test logged and gems updated:', logEntry);
+        return true;
 
     } catch (error) {
-        console.error('Error logging test:', error);
+        console.error('✗ Error logging test:', error);
+        return false;
     }
 }
 
-// Claim reward
 async function claimReward() {
-    if (currentUser.gems < 1000) {
+    if (!currentUser || currentUser.gems < 1000) {
         alert('You need at least 1000 gems to claim a reward');
-        return;
+        return false;
     }
 
     try {
-        // Reset gems to 0
-        await db.ref('users/' + currentUser.uid + '/profile/gems').set(0);
+        await firebase.database().ref('users/' + currentUser.uid + '/profile/gems').set(0);
 
         currentUser.gems = 0;
         document.getElementById('gemsDisplay').textContent = '0';
         document.getElementById('claimRewardContainer').style.display = 'none';
 
         alert('🎉 Congratulations! You claimed your reward! Your gems have been reset.');
+        return true;
 
     } catch (error) {
-        console.error('Error claiming reward:', error);
+        console.error('✗ Error claiming reward:', error);
         alert('Error claiming reward: ' + error.message);
+        return false;
     }
 }
 
-// Update gems
 async function updateGems(gemsToAdd) {
-    if (!currentUser) return;
+    if (!currentUser) {
+        console.warn('⚠ No user logged in, skipping gem update');
+        return false;
+    }
 
     try {
         const newGems = currentUser.gems + gemsToAdd;
-        await db.ref('users/' + currentUser.uid + '/profile/gems').set(newGems);
+        await firebase.database().ref('users/' + currentUser.uid + '/profile/gems').set(newGems);
 
         currentUser.gems = newGems;
         document.getElementById('gemsDisplay').textContent = newGems;
@@ -145,7 +148,10 @@ async function updateGems(gemsToAdd) {
             document.getElementById('claimRewardContainer').style.display = 'block';
         }
 
+        return true;
+
     } catch (error) {
-        console.error('Error updating gems:', error);
+        console.error('✗ Error updating gems:', error);
+        return false;
     }
 }
