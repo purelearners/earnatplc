@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Spellathon - Learning Platform</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/learning.css">
+</head>
+<body>
+    <!-- AUTH CONTAINER -->
+    <div id="authContainer" class="auth-container active">
+        <div class="auth-box">
+            <div class="auth-header">
+                <h1>Spellathon</h1>
+                <p>Master Your Spelling Skills</p>
+            </div>
+
+            <!-- TAB NAVIGATION -->
+            <div class="auth-tabs">
+                <button class="tab-btn active" data-tab="student-login">Student Login</button>
+                <button class="tab-btn" data-tab="student-signup">Student SignUp</button>
+                <button class="tab-btn" data-tab="admin-login">Admin Login</button>
+            </div>
+
+            <!-- STUDENT LOGIN -->
+            <div id="student-login" class="tab-content active">
+                <form onsubmit="return false">
+                    <input type="email" id="loginEmail" placeholder="Email" required>
+                    <input type="password" id="loginPassword" placeholder="Password" required>
+                    <button type="button" class="btn btn-primary" onclick="handleStudentLogin()">Login</button>
+                </form>
+            </div>
+
+            <!-- STUDENT SIGNUP -->
+            <div id="student-signup" class="tab-content">
+                <form onsubmit="return false">
+                    <input type="text" id="signupName" placeholder="Full Name" required>
+                    <select id="signupGrade" required>
+                        <option value="">Select Grade</option>
+                        <option value="1">Grade 1</option>
+                        <option value="2">Grade 2</option>
+                        <option value="3">Grade 3</option>
+                        <option value="4">Grade 4</option>
+                        <option value="5">Grade 5</option>
+                        <option value="6">Grade 6</option>
+                        <option value="7">Grade 7</option>
+                        <option value="8">Grade 8</option>
+                        <option value="9">Grade 9</option>
+                        <option value="10">Grade 10</option>
+                        <option value="11">Grade 11</option>
+                        <option value="12">Grade 12</option>
+                    </select>
+                    <input type="email" id="signupEmail" placeholder="Email" required>
+                    <input type="password" id="signupPassword" placeholder="Password (min 6 chars)" required>
+                    <button type="button" class="btn btn-primary" onclick="handleStudentSignup()">Sign Up</button>
+                </form>
+            </div>
+
+            <!-- ADMIN LOGIN -->
+            <div id="admin-login" class="tab-content">
+                <form onsubmit="return false">
+                    <input type="email" id="adminEmail" placeholder="Admin Email" required>
+                    <input type="password" id="adminPassword" placeholder="Password" required>
+                    <button type="button" class="btn btn-primary" onclick="handleAdminLogin()">Admin Login</button>
+                </form>
+            </div>
+
+            <div id="authError" class="error-message"></div>
+        </div>
+    </div>
+
+    <!-- STUDENT DASHBOARD -->
+    <div id="studentDashboard" class="dashboard-container">
+        <div class="dashboard-header">
+            <div class="header-top">
+                <h1>Welcome, <span id="userName">Student</span>! 👋</h1>
+                <button class="logout-btn" onclick="handleLogout()">Logout</button>
+            </div>
+            <div class="header-info">
+                <span class="grade-badge">Grade <span id="userGrade">1</span></span>
+                <div class="gems-display">
+                    <span class="gems-icon">💎</span>
+                    <span class="gems-count" id="gemsDisplay">50</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CLAIM REWARD BUTTON -->
+        <div id="claimRewardContainer" class="claim-reward-container" style="display: none;">
+            <button class="btn btn-success" onclick="claimReward()">🎉 Claim Reward! (1000+ Gems)</button>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="dashboard-content">
+            <!-- PRACTICE CARDS -->
+            <div id="practiceSection" class="practice-section">
+                <h2>Choose Your Practice</h2>
+                <div class="practice-cards">
+                    <div class="practice-card active" onclick="startSpellathon()">
+                        <div class="card-icon">📚</div>
+                        <h3>Spellathon</h3>
+                        <p>Learn and practice spelling</p>
+                        <span class="badge">Active</span>
+                    </div>
+                    <div class="practice-card disabled">
+                        <div class="card-icon">🔢</div>
+                        <h3>Math Practice</h3>
+                        <p>Practice math skills</p>
+                        <span class="badge coming">Coming Soon</span>
+                    </div>
+                    <div class="practice-card disabled">
+                        <div class="card-icon">📖</div>
+                        <h3>Reading Practice</h3>
+                        <p>Improve reading skills</p>
+                        <span class="badge coming">Coming Soon</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LEARNING SECTION (Hidden initially) -->
+            <div id="learningSection" class="learning-section" style="display: none;">
+                <div class="learning-header">
+                    <button class="back-btn" onclick="backToDashboard()">← Back</button>
+                    <h2>Spellathon Practice</h2>
+                </div>
+
+                <!-- GRADE SELECTION -->
+                <div id="gradeSelection" class="selection-step">
+                    <h3>Select Grade</h3>
+                    <p>Your Grade: <strong id="selectedGrade">Grade 5</strong></p>
+                    <p class="info-text">Words will be filtered for your grade level</p>
+                </div>
+
+                <!-- SUBJECT SELECTION -->
+                <div id="subjectSelection" class="selection-step" style="display: none;">
+                    <h3>Select Subject</h3>
+                    <div id="subjectList" class="button-grid">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- MODE SELECTION -->
+                <div id="modeSelection" class="selection-step" style="display: none;">
+                    <h3>Choose Mode</h3>
+                    <div class="button-grid">
+                        <button class="mode-btn" onclick="selectMode('learn')">
+                            <span class="mode-icon">📖</span>
+                            <span>Learn Mode</span>
+                            <span class="mode-reward">+2 gems/word</span>
+                        </button>
+                        <button class="mode-btn" onclick="selectMode('test')">
+                            <span class="mode-icon">✏️</span>
+                            <span>Test Mode</span>
+                            <span class="mode-reward">+5 gems/word</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SETS SELECTION -->
+                <div id="setSelection" class="selection-step" style="display: none;">
+                    <h3>Select Word Set</h3>
+                    <div id="setList" class="button-grid">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- LEARNING VIEW -->
+                <div id="learningView" class="learning-view" style="display: none;">
+                    <div class="learning-top">
+                        <button class="back-btn" onclick="backToSetSelection()">← Back</button>
+                        <span class="progress-indicator" id="progressIndicator">1/10</span>
+                    </div>
+
+                    <div class="word-display">
+                        <div class="word-section">
+                            <h2 id="currentWord">Word</h2>
+                            <p id="wordMeaning" class="word-meaning">Word meaning will appear here</p>
+                            <p id="wordIPA" class="word-ipa">IPA: ə-prəks-ə-ˈmāt-lē</p>
+                        </div>
+
+                        <div class="button-group">
+                            <button class="btn" onclick="playAudio('word')">▶ Play Word</button>
+                            <button class="btn" onclick="playAudio('syllables')">▶ Play Syllables</button>
+                            <button class="btn" onclick="playAudio('letters')">▶ Play Letters</button>
+                        </div>
+                    </div>
+
+                    <!-- PRACTICE INPUT -->
+                    <div id="practiceArea" class="practice-area" style="display: none;">
+                        <input type="text" id="spellingInput" placeholder="Type the word..." readonly>
+                        <div id="keyboard" class="keyboard"></div>
+                        <div class="input-buttons">
+                            <button class="btn" onclick="checkAnswer()">Check Answer</button>
+                            <button class="btn btn-secondary" onclick="nextWord()">Skip Word</button>
+                        </div>
+                    </div>
+
+                    <!-- TEST INPUT -->
+                    <div id="testArea" class="test-area" style="display: none;">
+                        <div class="test-timer">
+                            <span id="testTimer">30</span>s
+                        </div>
+                        <input type="text" id="testInput" placeholder="Type the word..." readonly>
+                        <div id="testKeyboard" class="keyboard"></div>
+                        <button class="btn" onclick="submitTestAnswer()">Submit</button>
+                    </div>
+
+                    <!-- FEEDBACK -->
+                    <div id="feedback" class="feedback" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROGRESS INFO -->
+        <div class="dashboard-footer">
+            <p>Keep learning! You're doing great! 🌟</p>
+        </div>
+    </div>
+
+    <!-- ADMIN DASHBOARD -->
+    <div id="adminDashboard" class="admin-container" style="display: none;">
+        <div class="admin-header">
+            <h1>Admin Dashboard</h1>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+
+        <div class="admin-nav">
+            <button class="admin-nav-btn active" onclick="switchAdminTab('analytics')">📊 Analytics</button>
+            <button class="admin-nav-btn" onclick="switchAdminTab('students')">👥 Students</button>
+            <button class="admin-nav-btn" onclick="switchAdminTab('logs')">📝 Logs</button>
+        </div>
+
+        <!-- ANALYTICS TAB -->
+        <div id="analytics-tab" class="admin-tab active">
+            <h2>Overview</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-label">Total Students</span>
+                    <span class="stat-value" id="totalStudents">0</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Today's Logins</span>
+                    <span class="stat-value" id="todayLogins">0</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Tests Taken</span>
+                    <span class="stat-value" id="totalTests">0</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Avg Gems/Student</span>
+                    <span class="stat-value" id="avgGems">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- STUDENTS TAB -->
+        <div id="students-tab" class="admin-tab">
+            <h2>Students</h2>
+            <div class="search-box">
+                <input type="text" id="studentSearch" placeholder="Search by name or email..." onkeyup="filterStudents()">
+            </div>
+            <div id="studentsList" class="students-list">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- LOGS TAB -->
+        <div id="logs-tab" class="admin-tab">
+            <h2>Student Logs</h2>
+            <div class="logs-controls">
+                <select id="logStudentSelect" onchange="loadStudentLogs()">
+                    <option value="">Select Student</option>
+                </select>
+            </div>
+            <div id="logsList" class="logs-list">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- LOADING SPINNER -->
+    <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js"></script>
+
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/database.js"></script>
+    <script src="js/worddata.js"></script>
+    <script src="js/learning.js"></script>
+    <script src="js/admin.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
